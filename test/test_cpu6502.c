@@ -1,19 +1,30 @@
 #include <check.h>
-#include "sum.h"
+#include <stdlib.h>
+#include "safe_free.h"
 
-START_TEST(nums_sum_test)
+START_TEST(safe_free_test)
 {
-    ck_assert_int_eq(sum(1, 3), 4);
-    ck_assert_int_eq(sum(2, -2), 0);
-    ck_assert_int_eq(sum(1, -3), -2);
+    int* ptr = (int*) malloc(sizeof(int));
+
+    /*
+     * Although free(NULL) is a no-op, we want 
+     * to check that malloc returned something
+     * other than null.
+     */
+
+    if (ptr)
+    {
+        safe_free(ptr);
+        ck_assert_ptr_null(ptr);
+    }
 }
 END_TEST
 
 Suite* sum_suite(void)
 {
     Suite* s = suite_create("6502");
-    TCase* tc = tcase_create("Sum");
-    tcase_add_test(tc, nums_sum_test);
+    TCase* tc = tcase_create("safe_free");
+    tcase_add_test(tc, safe_free_test);
     suite_add_tcase(s, tc);
     return s;
 }
