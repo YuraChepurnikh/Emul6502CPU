@@ -54,9 +54,20 @@ test: $(STATIC_LIB) $(TEST_OBJ)
 	$(CC) $(CFLAGS) $(TEST_OBJ) $(STATIC_LIB) $(LDFLAGS) -o $(TEST_EXE)
 	./$(TEST_EXE)
 
+# valgrind
+test: CFLAGS += $(CHECK_FLAGS)
+test: LDFLAGS += $(CHECK_LIBS) -pthread
+test: $(STATIC_LIB) $(TEST_OBJ)
+	$(CC) $(CFLAGS) $(TEST_OBJ) $(STATIC_LIB) $(LDFLAGS) -o $(TEST_EXE)
+	./$(TEST_EXE)
+	valgrind --leak-check=full --track-origins=yes ./$(TEST_EXE)
+
 # Compile tests
 $(BUILD_DIR)/test_cpu6502.o: $(TEST_SRC) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(BUILD_DIR) $(STATIC_LIB) $(TEST_EXE)
+
+valgrind: test
+	valgrind --leak-check=full --track-origins=yes ./$(TEST_EXE)
