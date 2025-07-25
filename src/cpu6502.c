@@ -34,7 +34,7 @@ CPU6502* create_cpu()
 
     cpu6502->SP = 0xFD;
 
-    cpu6502->X = cpu6502->Y = cpu6502->A = 0;
+    cpu6502->X = cpu6502->Y = cpu6502->ACC = 0;
 
     // 0x34 - set U, B, ans I
     cpu6502->status = 0x34;
@@ -46,6 +46,30 @@ CPU6502* create_cpu()
 
 void destroy_cpu(CPU6502** cpu)
 {
-    safe_free((*cpu)->RAM);
-    safe_free(cpu);
+    if (!cpu || !(*cpu))
+    {
+        return;
+    }
+
+    free((*cpu)->RAM);
+    free(*cpu);
+
+    *cpu = NULL;
+}
+
+/* 
+ * IMP (Implied Addressing) - This is an addressing mode 
+ * where the instruction does not require an explicit operand,
+ * since the operand is either not needed or is fixed within the command,
+ * for example, in the accumulator (ACC) or in registers (X, Y). 
+ * It is used for consistency with the architecture, 
+ * acting as an empty placeholder when 
+ * no special addressing mode is required, such as (ABX, ZPX, etc.).
+ */
+
+uint8_t IMP(CPU6502* cpu) 
+{
+    // Backup even if AСС is not used in the instruction
+    cpu->fetch = cpu->ACC;
+    return 0;
 }

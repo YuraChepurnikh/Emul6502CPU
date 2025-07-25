@@ -41,18 +41,26 @@ typedef struct CPU6502
     uint8_t SP;
 
     // Registers for general arithmetic operations Flags6502
-    uint8_t X, Y, A;
+    uint8_t X, Y, ACC;
 
     // 6502 flags
     uint8_t status;
 
     // 64Kb RAM
     uint8_t* RAM;
-}
-CPU6502;
+
+    // Helper variables for emulation
+    uint8_t fetch;
+    uint16_t addr_rel, addr_abs;
+
+} CPU6502;
 
 // create/destroy
 CPU6502* create_cpu();
 void destroy_cpu(CPU6502 **cpu);
+
+// Addressing modes
+uint8_t IMP(CPU6502* cpu);
+
 
 #endif // CPU_6502_H
