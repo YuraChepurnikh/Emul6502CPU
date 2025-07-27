@@ -73,3 +73,37 @@ uint8_t IMP(CPU6502* cpu)
     cpu->fetch = cpu->ACC;
     return 0;
 }
+
+/* 
+ * IMM (Immediate mode) - This is an addressing mode in which the operand
+ * is specified directly in the byte following the instruction and is interpreted
+ * as a literal value rather than an address.
+ * 
+ * For example
+ * LDA #$10 
+ * 
+ * LDA - Load value to accumulator.
+ * #$10 - Load value 10 (The # symbol indicates that the value
+ * should be used directly, not as an address).
+ * 
+ * This is a two-byte command 
+ * The first byte is the Opcode (LDA)
+ * The second byte is the Immediate value (#$10)
+ * 
+ * The first byte had already been read before IMM, so
+ * 
+ * 1) We need to save the value 
+ * 2) Increase the PC so that it points to the next instruction, otherwise the CPU 
+ *    will think that our next opcode is the Immediate value
+ */
+
+uint8_t IMM(CPU6502* cpu)
+{
+    // Record the value
+    cpu->addr_abs = cpu->PC; 
+
+    // point to the next instruction
+    ++(cpu->PC); 
+
+    return 0; // no extra cycles needed
+}
