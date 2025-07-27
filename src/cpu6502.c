@@ -3,23 +3,15 @@
 
 #include "cpu6502.h"
 #include "safe_free.h"
+#include "types6502.h"
 
-CPU6502* create_cpu()
+CPU6502* create_cpu(void)
 {   
     CPU6502* cpu6502 = (CPU6502*) malloc(sizeof(CPU6502));
 
     if (!cpu6502)
     {
         fprintf(stderr, "[ERROR] Failed to allocate memory for CPU structure\n");
-        return NULL;
-    }
-
-    cpu6502->RAM = (uint8_t*) malloc(RAM_SIZE_BYTES * sizeof(uint8_t));
-
-    if (!cpu6502->RAM)
-    {
-        fprintf(stderr, "[ERROR] Failed to allocate 64KB RAM\n");
-        free(cpu6502);
         return NULL;
     }
 
@@ -39,8 +31,6 @@ CPU6502* create_cpu()
     // 0x34 - set U, B, ans I
     cpu6502->status = 0x34;
 
-    memset(cpu6502->RAM, 0, RAM_SIZE_BYTES);
-
     return cpu6502;
 }
 
@@ -51,10 +41,13 @@ void destroy_cpu(CPU6502** cpu)
         return;
     }
 
-    free((*cpu)->RAM);
     free(*cpu);
-
     *cpu = NULL;
+}
+
+Byte fetch_byte(CPU6502 *cpu)
+{
+    return mem_read(cpu->bus, cpu->PC);
 }
 
 /* 
@@ -67,7 +60,7 @@ void destroy_cpu(CPU6502** cpu)
  * no special addressing mode is required, such as (ABX, ZPX, etc.).
  */
 
-uint8_t IMP(CPU6502* cpu) 
+Byte IMP(CPU6502* cpu) 
 {
     // Backup even if AСС is not used in the instruction
     cpu->fetch = cpu->ACC;
@@ -97,13 +90,53 @@ uint8_t IMP(CPU6502* cpu)
  *    will think that our next opcode is the Immediate value
  */
 
-uint8_t IMM(CPU6502* cpu)
+Byte IMM(CPU6502* cpu)
 {
     // Record the value
     cpu->addr_abs = cpu->PC; 
 
     // point to the next instruction
-    ++(cpu->PC); 
+    cpu->PC++; 
 
-    return 0; // no extra cycles needed
+    // no extra cycles needed
+    return 0; 
+}
+
+/*
+* Processors use the concept of pages to increase efficiency. 
+* For example, the 6502 has a 16-bit address bus, and we can divide 16 bits
+* into 2 bytes, where the first byte is the page number and the second byte 
+* is the offset within that page. Since the 6502 has a 16-bit address bus, 
+* it can address up to 64Kb of information, which can be represented as 
+* 256 pages of 256 bytes of memory.
+* 
+* ZP0 (Zero Page Addressing) - This is an addressing mode where
+* addressing occurs on the zero page, i.e., the address we are interested 
+* in is somewhere on the zero page and therefore the high byte is zero.
+* For this reason, programmers often place the working part of the memory
+* on the zero page, as this allows them to access these bytes using instructions
+* that require fewer bytes. An instruction consists of bytes, each of which
+* requires processor cycles to read, and we use this trick, this clever moment, 
+* to immediately read the low byte from the zero page, i.e., no
+* additional cycle is required to read the high byte, 
+* and this saves us processor time, where each cycle costs memory and time. 
+* 
+* Essentially, if we write LDA $42, thanks to ZP0, the compiler will understand 
+* that we are dealing with an address in the zero page (0x0042), but we can also
+* write the full address LDA $0042, and thus flush everything down the toilet, 
+* as the compiler will waste a clock cycle reading the high byte, which could 
+* have been avoided.
+*/
+
+Byte ZP0(CPU6502 *cpu)
+{
+    cpu->addr_abs = fetch_byte(cpu);
+
+    cpu->PC++;
+
+    // Just in case, we reset the High byte to zero
+    cpu->addr_abs &= 0x00FF;
+
+    // No extra cycles needed
+    return 0;
 }

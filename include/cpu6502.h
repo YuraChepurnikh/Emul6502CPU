@@ -2,9 +2,7 @@
 #define CPU_6502_H
 
 #include <stdint.h>
-
-#define RAM_SIZE_KB 64
-#define RAM_SIZE_BYTES (RAM_SIZE_KB * 1024)
+#include "bus.h"
 
 // The 6502 is a simple 8-bit processor
 
@@ -19,6 +17,8 @@
  * perform two read operations, one 
  * byte at a time 
  */
+
+typedef struct Bus Bus;
 
 typedef struct CPU6502
 {
@@ -46,21 +46,25 @@ typedef struct CPU6502
     // 6502 flags
     uint8_t status;
 
-    // 64Kb RAM
-    uint8_t* RAM;
-
     // Helper variables for emulation
     uint8_t fetch;
     uint16_t addr_rel, addr_abs;
 
+    // Pointer to Bus
+    Bus* bus;
+
 } CPU6502;
 
 // create/destroy
-CPU6502* create_cpu();
+CPU6502* create_cpu(void);
 void destroy_cpu(CPU6502 **cpu);
+
+// fetch byte
+uint8_t fetch_byte(CPU6502 *cpu);
 
 // Addressing modes
 uint8_t IMP(CPU6502* cpu);
-
+uint8_t IMM(CPU6502 *cpu);
+uint8_t ZP0(CPU6502 *cpu);
 
 #endif // CPU_6502_H

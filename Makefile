@@ -45,21 +45,20 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 
 # Create a BUILD_DIR folder if it does not exist
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $@
 
 # Building and running tests
+test: build_tests run_tests
+
 test: CFLAGS += $(CHECK_FLAGS)
 test: LDFLAGS += $(CHECK_LIBS) -pthread
 test: $(STATIC_LIB) $(TEST_OBJ)
 	$(CC) $(CFLAGS) $(TEST_OBJ) $(STATIC_LIB) $(LDFLAGS) -o $(TEST_EXE)
+
+run_tests:
 	./$(TEST_EXE)
 
-# valgrind
-test: CFLAGS += $(CHECK_FLAGS)
-test: LDFLAGS += $(CHECK_LIBS) -pthread
-test: $(STATIC_LIB) $(TEST_OBJ)
-	$(CC) $(CFLAGS) $(TEST_OBJ) $(STATIC_LIB) $(LDFLAGS) -o $(TEST_EXE)
-	./$(TEST_EXE)
+valgrind: build_tests
 	valgrind --leak-check=full --track-origins=yes ./$(TEST_EXE)
 
 # Compile tests
@@ -68,6 +67,3 @@ $(BUILD_DIR)/test_cpu6502.o: $(TEST_SRC) | $(BUILD_DIR)
 
 clean:
 	rm -rf $(BUILD_DIR) $(STATIC_LIB) $(TEST_EXE)
-
-valgrind: test
-	valgrind --leak-check=full --track-origins=yes ./$(TEST_EXE)

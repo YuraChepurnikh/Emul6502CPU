@@ -11,7 +11,7 @@
     #define SAFE_FREE_LOG(ptr) \
         printf("[safe_free] Release address: %p (%s,%d)\n", (void*)(*(ptr)), __FILE__, __LINE__)
 #else 
-    #define SAFE_FREE_LOG(ptr) // Empty definition
+    #define SAFE_FREE_LOG(ptr) /* Empty definition */
 #endif
 
 void safer_free(void** ptr, const char* file, int line);
