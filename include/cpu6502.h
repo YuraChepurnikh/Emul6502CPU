@@ -60,11 +60,13 @@ CPU6502* create_cpu(void);
 void destroy_cpu(CPU6502 **cpu);
 
 // fetch byte
-uint8_t fetch_byte(CPU6502 *cpu);
+uint8_t fetch_byte(CPU6502 *cpu, uint8_t addr);
 
 // Addressing modes
 uint8_t IMP(CPU6502* cpu);
-uint8_t IMM(CPU6502 *cpu);
-uint8_t ZP0(CPU6502 *cpu);
+uint8_t IMM(CPU6502* cpu);
+uint8_t ZP0(CPU6502* cpu);
+uint8_t ZPX(CPU6502* cpu);
+uint8_t ZPY(CPU6502* cpu);
 
 #endif // CPU_6502_H

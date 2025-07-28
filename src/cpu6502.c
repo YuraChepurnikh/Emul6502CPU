@@ -45,9 +45,9 @@ void destroy_cpu(CPU6502** cpu)
     *cpu = NULL;
 }
 
-Byte fetch_byte(CPU6502 *cpu)
+Byte fetch_byte(CPU6502 *cpu, Byte addr)
 {
-    return mem_read(cpu->bus, cpu->PC);
+    return mem_read(cpu->bus, addr);
 }
 
 /* 
@@ -130,7 +130,7 @@ Byte IMM(CPU6502* cpu)
 
 Byte ZP0(CPU6502 *cpu)
 {
-    cpu->addr_abs = fetch_byte(cpu);
+    cpu->addr_abs = fetch_byte(cpu, cpu->PC);
 
     cpu->PC++;
 
@@ -138,5 +138,39 @@ Byte ZP0(CPU6502 *cpu)
     cpu->addr_abs &= 0x00FF;
 
     // No extra cycles needed
+    return 0;
+}
+
+/* 
+ * ZPX (Zero Page Addressing With X Register Offset) - This is an addressing mode 
+ * within the zero page where the X register is used as an offset. It is convenient
+ * for iterating through memory areas and can be compared to arrays in the C language, 
+ * where the array has a base address, and the index offsets into this array. 
+*/
+
+Byte ZPX(CPU6502* cpu)
+{
+    cpu->addr_abs = fetch_byte(cpu, cpu->PC) + cpu->X;
+
+    cpu->PC++;
+
+    cpu->addr_abs &= 0x00FF;
+
+    return 0;
+}
+
+/* 
+ * ZPY (Zero Page Addressing With Y Register Offset) - Essentially the same as ZPX, 
+ * except that the Y register is used for the offset instead of the X register.
+*/
+
+Byte ZPY(CPU6502* cpu)
+{
+    cpu->addr_abs = fetch_byte(cpu, cpu->PC) + cpu->Y;
+
+    cpu->PC++;
+
+    cpu->addr_abs &= 0x00FF;
+
     return 0;
 }

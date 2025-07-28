@@ -52,8 +52,9 @@ test: build_tests run_tests
 
 test: CFLAGS += $(CHECK_FLAGS)
 test: LDFLAGS += $(CHECK_LIBS) -pthread
-test: $(STATIC_LIB) $(TEST_OBJ)
-	$(CC) $(CFLAGS) $(TEST_OBJ) $(STATIC_LIB) $(LDFLAGS) -o $(TEST_EXE)
+
+build_tests: $(STATIC_LIB) $(TEST_OBJ)
+	$(CC) $(CFLAGS) $(TEST_OBJ) $(STATIC_LIB) $(CHECK_LIBS) -pthread -o $(TEST_EXE)
 
 run_tests:
 	./$(TEST_EXE)
