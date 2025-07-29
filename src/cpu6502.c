@@ -174,3 +174,63 @@ Byte ZPY(CPU6502* cpu)
 
     return 0;
 }
+
+/* 
+ * ABS (Absolute Addressing) - This is an addressing mode 
+ * where we provide the address in its full form, 
+ * i.e. including the high and low bytes.   
+ */
+
+Byte ABS(CPU6502* cpu)
+{
+    /*
+     * Since the 6502 is a little-endian machine, 
+     * we first read the lower bytes and then the higher bytes.
+     */
+
+    Byte low_byte = fetch_byte(cpu, cpu->PC);
+    cpu->PC++;
+
+    Byte high_byte = fetch_byte(cpu, cpu->PC);
+    cpu->PC++;
+
+    cpu->addr_abs = (high_byte << 8) | low_byte;
+
+    return 0;
+}
+
+/* 
+ * ABS (Absolute Addressing With X Register Offset) - This is an addressing mode
+ * where we provide the address in full form with a register offset X, i.e. 
+ * including the most significant and least significant bytes.   
+ */
+
+Byte ABX(CPU6502* cpu)
+{    
+    Byte low_byte = fetch_byte(cpu, cpu->PC);
+    cpu->PC++;
+
+    Byte high_byte = fetch_byte(cpu, cpu->PC);
+    cpu->PC++;
+
+    cpu->addr_abs = (high_byte << 8) | low_byte;
+
+    cpu->addr_abs += cpu->X;
+
+    /*
+     * If, after increasing the base address by the X register offset,
+     * the address has moved to another page, we will need an additional processor cycle.
+     * We determine this by the high byte; if it has changed,
+     * then an overflow has occurred (the carry bit from the low byte has carried into the high byte).
+     */
+
+    if ((cpu->addr_abs & 0xFF00) != (high_byte << 8))
+    {
+        return 1; // We need one extra cycle
+    }
+
+    else
+    {
+        return 0;
+    }
+}
