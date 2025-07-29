@@ -194,7 +194,7 @@ Byte ABS(CPU6502* cpu)
     Byte high_byte = fetch_byte(cpu, cpu->PC);
     cpu->PC++;
 
-    cpu->addr_abs = (high_byte << 8) | low_byte;
+    cpu->addr_abs = ((Word) high_byte << 8) | low_byte;
 
     return 0;
 }
@@ -213,7 +213,7 @@ Byte ABX(CPU6502* cpu)
     Byte high_byte = fetch_byte(cpu, cpu->PC);
     cpu->PC++;
 
-    cpu->addr_abs = (high_byte << 8) | low_byte;
+    cpu->addr_abs = ((Word) high_byte << 8) | low_byte;
 
     cpu->addr_abs += cpu->X;
 
@@ -224,7 +224,7 @@ Byte ABX(CPU6502* cpu)
      * then an overflow has occurred (the carry bit from the low byte has carried into the high byte).
      */
 
-    if ((cpu->addr_abs & 0xFF00) != (high_byte << 8))
+    if ((cpu->addr_abs & 0xFF00) != ((Word) high_byte << 8))
     {
         return 1; // We need one extra cycle
     }
@@ -233,4 +233,95 @@ Byte ABX(CPU6502* cpu)
     {
         return 0;
     }
+}
+
+/* 
+ * ABX (Absolute Addressing With X Register Offset) - This is an addressing mode
+ * where we provide the address in full form with a register offset X, i.e. 
+ * including the most significant and least significant bytes.   
+ */
+
+Byte ABX(CPU6502* cpu)
+{    
+    Byte low_byte = fetch_byte(cpu, cpu->PC);
+    cpu->PC++;
+
+    Byte high_byte = fetch_byte(cpu, cpu->PC);
+    cpu->PC++;
+
+    cpu->addr_abs = ((Word) high_byte << 8) | low_byte;
+
+    cpu->addr_abs += cpu->X;
+
+    /*
+     * If, after increasing the base address by the X register offset,
+     * the address has moved to another page, we will need an additional processor cycle.
+     * We determine this by the high byte; if it has changed,
+     * then an overflow has occurred (the carry bit from the low byte has carried into the high byte).
+     */
+
+    if ((cpu->addr_abs & 0xFF00) != ((Word) high_byte << 8))
+    {
+        return 1; // We need one extra cycle
+    }
+
+    else
+    {
+        return 0;
+    }
+}
+
+/* 
+ * ABY (Absolute Addressing With Y Register Offset) - This is an addressing mode
+ * where we provide the address in full form with a register offset Y, i.e. 
+ * including the most significant and least significant bytes.   
+ */
+
+ Byte ABY(CPU6502* cpu)
+ {    
+     Byte low_byte = fetch_byte(cpu, cpu->PC);
+     cpu->PC++;
+ 
+     Byte high_byte = fetch_byte(cpu, cpu->PC);
+     cpu->PC++;
+ 
+     cpu->addr_abs = ((Word) high_byte << 8) | low_byte;
+ 
+     cpu->addr_abs += cpu->Y;
+ 
+     /*
+      * If, after increasing the base address by the X register offset,
+      * the address has moved to another page, we will need an additional processor cycle.
+      * We determine this by the high byte; if it has changed,
+      * then an overflow has occurred (the carry bit from the low byte has carried into the high byte).
+      */
+ 
+     if ((cpu->addr_abs & 0xFF00) != ((Word) high_byte << 8))
+     {
+         return 1; // We need one extra cycle
+     }
+ 
+     else
+     {
+         return 0;
+     }
+ }
+ 
+/*
+ * REL (Relative addressing) - is an addressing mode that applies only to branch instructions. 
+ */
+
+Byte REL(CPU6502* cpu)
+{
+    cpu->addr_rel = fetch_byte(cpu, cpu->PC);
+
+    cpu->PC++;
+
+    // Sign extension uint8_t -> uint16_t
+    if (cpu->addr_rel & 0x80)
+    {
+        cpu->addr_rel |= 0xFF00;
+    }
+
+    return 0;
 }

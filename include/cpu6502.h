@@ -68,5 +68,9 @@ uint8_t IMM(CPU6502* cpu);
 uint8_t ZP0(CPU6502* cpu);
 uint8_t ZPX(CPU6502* cpu);
 uint8_t ZPY(CPU6502* cpu);
+uint8_t ABS(CPU6502 *cpu);
+uint8_t ABX(CPU6502 *cpu);
+uint8_t ABY(CPU6502 *cpu);
+uint8_t REL(CPU6502 *cpu);
 
 #endif // CPU_6502_H
